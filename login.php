@@ -409,6 +409,51 @@ if (isset($_GET['code'])) {
             color: #155724;
             background: #d4edda;
         }
+
+        /* Styles pour la popup modale */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(22, 169, 211, 0.13);
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #16a9d3;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #16a9d3;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -432,32 +477,8 @@ if (isset($_GET['code'])) {
 
         <!-- Lien mot de passe oublié -->
         <div class="forgot-password">
-            <a href="#" onclick="showForgotForm(); return false;">Mot de passe oublié ?</a>
+            <a href="#" onclick="openModal(); return false;">Mot de passe oublié ?</a>
         </div>
-
-        <!-- Formulaire demande code -->
-        <form action="login.php" method="POST" class="form" id="forgot-form" 
-              style="display: <?php echo ($_SESSION['forgot_password']['step'] == 1) ? 'block' : 'none'; ?>;">
-            <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
-            <input class="input" type="email" name="forgot_email" placeholder="Entrez votre email" required>
-            <input class="login-button" type="submit" value="Envoyer le code">
-        </form>
-
-        <!-- Formulaire vérification code -->
-        <form action="login.php" method="POST" class="form" id="verify-form" 
-              style="display: <?php echo ($_SESSION['forgot_password']['step'] == 2) ? 'block' : 'none'; ?>;">
-            <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
-            <input class="input" type="text" name="verify_code" placeholder="Entrez le code reçu" required>
-            <input class="login-button" type="submit" value="Vérifier le code">
-        </form>
-
-        <!-- Formulaire réinitialisation mot de passe -->
-        <form action="login.php" method="POST" class="form" id="reset-form" 
-              style="display: <?php echo ($_SESSION['forgot_password']['step'] == 3) ? 'block' : 'none'; ?>;">
-            <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
-            <input class="input" type="password" name="new_password" placeholder="Nouveau mot de passe" required>
-            <input class="login-button" type="submit" value="Réinitialiser le mot de passe">
-        </form>
 
         <!-- Bouton Google -->
         <a href="<?php echo $client->createAuthUrl(); ?>" class="google-login">
@@ -468,25 +489,63 @@ if (isset($_GET['code'])) {
         </a>
     </div>
 
+    <!-- Popup Modale pour mot de passe oublié -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="modal-title">Réinitialisation du mot de passe</div>
+
+            <!-- Formulaire demande code -->
+            <form action="login.php" method="POST" class="form" id="forgot-form" 
+                  style="display: <?php echo ($_SESSION['forgot_password']['step'] == 1 || $_SESSION['forgot_password']['step'] == 0) ? 'block' : 'none'; ?>;">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
+                <input class="input" type="email" name="forgot_email" placeholder="Entrez votre email" required>
+                <input class="login-button" type="submit" value="Envoyer le code">
+            </form>
+
+            <!-- Formulaire vérification code -->
+            <form action="login.php" method="POST" class="form" id="verify-form" 
+                  style="display: <?php echo ($_SESSION['forgot_password']['step'] == 2) ? 'block' : 'none'; ?>;">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
+                <input class="input" type="text" name="verify_code" placeholder="Entrez le code reçu" required>
+                <input class="login-button" type="submit" value="Vérifier le code">
+            </form>
+
+            <!-- Formulaire réinitialisation mot de passe -->
+            <form action="login.php" method="POST" class="form" id="reset-form" 
+                  style="display: <?php echo ($_SESSION['forgot_password']['step'] == 3) ? 'block' : 'none'; ?>;">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
+                <input class="input" type="password" name="new_password" placeholder="Nouveau mot de passe" required>
+                <input class="login-button" type="submit" value="Réinitialiser le mot de passe">
+            </form>
+        </div>
+    </div>
+
     <script>
-        function showForgotForm() {
-            const forms = ['forgot-form', 'verify-form', 'reset-form'];
-            forms.forEach(id => {
-                const form = document.getElementById(id);
-                form.style.display = id === 'forgot-form' ? 'block' : 'none';
-            });
+        function openModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
         }
 
-        // Initialisation des formulaires
-        document.addEventListener('DOMContentLoaded', () => {
-            const forms = ['forgot-form', 'verify-form', 'reset-form'];
-            forms.forEach(id => {
-                const form = document.getElementById(id);
-                if (form.style.display !== 'block') {
-                    form.style.display = 'none';
-                }
-            });
+        function closeModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            // Réinitialiser l'étape lors de la fermeture
+            fetch('reset_step.php');
+        }
+
+        // Fermer la modale si on clique en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Vérifier si on doit afficher la popup après un rafraîchissement
+        <?php if ($_SESSION['forgot_password']['step'] > 0): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            openModal();
         });
+        <?php endif; ?>
     </script>
 </body>
 </html>
