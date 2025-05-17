@@ -18,7 +18,7 @@ const CONFIG = [
     'google_oauth' => [
         'client_id' => '906846133961-k9bem1jp506ssfele6gvk3c0mfsp9iue.apps.googleusercontent.com',
         'client_secret' => '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',
-        'redirect_uri' => 'http://localhost/web-shaima/login.php'
+        'redirect_uri' => 'http://localhost/PowerBI--integration/login.php'
     ],
     'security' => [
         'code_expiry' => 600, // 10 minutes
